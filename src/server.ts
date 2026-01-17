@@ -1,6 +1,7 @@
 import express, { Request,Response } from "express";
 import cors from "cors"
-import routes, { router } from "./routes"
+import routes from "./routes"
+import cookieParser from "cookie-parser";
 import { errorHandler } from "./middlewares/error-handler";
 import { env } from "./env";
 
@@ -9,6 +10,7 @@ const PORT = env.PORT || 5000
 const app = express()
 app.use(cors())
 app.use(express.json())
+app.use(cookieParser());
 app.use(errorHandler);
 
 app.get("/",(req:Request,res:Response) => {
