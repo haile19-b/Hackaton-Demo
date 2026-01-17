@@ -1,12 +1,11 @@
 import express, { Request,Response } from "express";
 import cors from "cors"
-import dotev from "dotenv"
-import routes from "./routes"
+import routes, { router } from "./routes"
 import { errorHandler } from "./middlewares/error-handler";
+import { env } from "./env";
 
-dotev.config()
 
-const PORT = process.env.PORT || 5000
+const PORT = env.PORT || 5000
 const app = express()
 app.use(cors())
 app.use(express.json())

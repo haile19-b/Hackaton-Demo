@@ -8,6 +8,9 @@ const EnvSchema = z.object({
   PORT: z.string().default("5000"),
   JWT_SECRET: z.string(),
   BASE_URL: z.string().default("http://localhost:5000"),
+  NODE_ENV: z.string().default("development"),
+  JWT_ACCESS_SECRET: z.string().default("access_secret"),
+  JWT_REFRESH_SECRET: z.string().default("secret_secret"),
 });
 
 export const env = EnvSchema.parse(process.env);
