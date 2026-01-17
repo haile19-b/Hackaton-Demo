@@ -2,6 +2,7 @@ import express, { Request,Response } from "express";
 import cors from "cors"
 import dotev from "dotenv"
 import routes from "./routes"
+import { errorHandler } from "./middlewares/error-handler";
 
 dotev.config()
 
@@ -9,6 +10,7 @@ const PORT = process.env.PORT || 5000
 const app = express()
 app.use(cors())
 app.use(express.json())
+app.use(errorHandler);
 
 app.get("/",(req:Request,res:Response) => {
     res.send("HELLO from Backend!")
