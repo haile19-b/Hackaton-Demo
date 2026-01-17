@@ -11,6 +11,7 @@ const EnvSchema = z.object({
   NODE_ENV: z.string().default("development"),
   JWT_ACCESS_SECRET: z.string().default("access_secret"),
   JWT_REFRESH_SECRET: z.string().default("secret_secret"),
+  GEMINI_API_KEY: z.string(),
 });
 
 export const env = EnvSchema.parse(process.env);
