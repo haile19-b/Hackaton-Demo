@@ -2,52 +2,80 @@ import bcrypt from "bcryptjs";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "./jwt";
 import { prisma } from "../../config/prisma";
 
+type ServiceResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string };
+
 export const AuthService = {
-  async register(userName: string, email: string, password: string) {
+  async register(
+    userName: string,
+    email: string,
+    password: string
+  ): Promise<ServiceResult<any>> {
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) throw new Error("User already exists");
+
+    if (existingUser) {
+      return { success: false, error: "User already exists" };
+    }
 
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { name:userName, email, passwordHash },
+      data: { name: userName, email, passwordHash },
     });
 
     const accessToken = signAccessToken({ userId: user.id, email: user.email });
     const refreshToken = signRefreshToken({ userId: user.id });
 
-    return { accessToken, refreshToken, user };
+    return {
+      success: true,
+      data: { accessToken, refreshToken, user },
+    };
   },
 
-  async login(email: string, password: string) {
+  async login(
+    email: string,
+    password: string
+  ): Promise<ServiceResult<any>> {
     const user = await prisma.user.findUnique({ where: { email } });
 
-    if (!user || !user.passwordHash) throw new Error("Invalid credentials");
+    if (!user || !user.passwordHash) {
+      return { success: false, error: "Invalid credentials" };
+    }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!isMatch) throw new Error("Invalid credentials");
+    if (!isMatch) {
+      return { success: false, error: "Invalid credentials" };
+    }
 
     const accessToken = signAccessToken({ userId: user.id, email: user.email });
     const refreshToken = signRefreshToken({ userId: user.id });
 
-    return { accessToken, refreshToken, user };
+    return {
+      success: true,
+      data: { accessToken, refreshToken, user },
+    };
   },
 
-  async refresh(token: string) {
-    // 1. Verify the token
-    const decoded = verifyRefreshToken(token) as { userId: string };
-    if (!decoded || !decoded.userId) throw new Error("Invalid refresh token");
+  async refresh(token: string): Promise<ServiceResult<any>> {
+    const decoded = verifyRefreshToken(token) as { userId?: string };
 
-    // 2. Find the user
+    if (!decoded?.userId) {
+      return { success: false, error: "Invalid refresh token" };
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
     });
 
-    if (!user) throw new Error("User not found");
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
 
-    // 3. Generate a new Access Token
     const accessToken = signAccessToken({ userId: user.id, email: user.email });
 
-    return { accessToken, user };
-  }
-  
+    return {
+      success: true,
+      data: { accessToken, user },
+    };
+  },
 };
