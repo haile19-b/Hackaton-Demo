@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { informationAgent } from "../../agents/graphs/informationGraph";
 import { vectorAgent } from "../../agents/graphs/vectorGraph";
+import { dataService } from "./data.service";
 
 export const dataController = {
     async addTextData(req: Request, res: Response) {
@@ -35,7 +36,7 @@ export const dataController = {
         try {
             const file = req.file;
             const userId = (req as any).user?.userId;
-            const projectId = "696b9e92701a4ea33cc287cb";
+            const { projectId } = req.params;
 
             if (!file) {
                 return res.status(400).json({
@@ -73,5 +74,36 @@ export const dataController = {
                 error: "Internal server error."
             });
         }
-    }
+    },
+
+    async addMissingData(req: Request, res: Response) {
+        const { missingdataId = null, text } = req.body;
+        const  projectId  = req.params.projectId;
+
+        if (!text || typeof text !== "string") {
+            return res.status(400).json({
+                success: false,
+                error: "Text is required",
+            });
+        }
+
+        if (!projectId) {
+            return res.status(400).json({
+                success: false,
+                error: "Project ID is required",
+            });
+        }
+
+        const result = await dataService.addMissingData(
+            text,
+            projectId,
+            missingdataId
+        );
+
+        if (!result.success) {
+            return res.status(422).json(result);
+        }
+
+        return res.status(200).json(result);
+    },
 };

@@ -6,7 +6,7 @@ import { authMiddleware } from "./middlewares/auth.middleware";
 export const router = Router();
 
 router.use("/auth",authRoute)
-router.use("/project",authMiddleware,projectRoute)
-router.use("/file",authMiddleware,fileRoute)
+router.use("/projects",authMiddleware,projectRoute)
+router.use("/project",authMiddleware,fileRoute)
 
 export default router
