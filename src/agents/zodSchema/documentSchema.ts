@@ -5,6 +5,15 @@ const functionalRequirements = z.object({
   description: z.string().describe("Clear requirement description."),
 });
 
+const techStackSchema = z.object({
+  category: z.string().describe(
+    "Category of the tech stack, e.g., frontend, backend, database, version control, or other."
+  ),
+  stack: z.array(z.string()).describe(
+    "List of technologies/tools used in this category."
+  )
+});
+
 const non_FunctionalRequirements = z.object({
   id: z.string().describe("Unique requirement ID."),
   description: z.string().describe("Clear requirement description."),
@@ -27,7 +36,8 @@ export const projectDocumentationSchema = z.object({
 
   non_functionalRequirements: z.array(non_FunctionalRequirements)
     .describe("All extracted non-functional requirements."),
-
+  techStack:z.array(techStackSchema)
+  .describe("techStack Used in the project"),
   recommendedTasks: z.array(taskSchema)
     .describe("Tasks required to complete the project based on functional and non-functional requirements, constraints and the overall document"),
 
