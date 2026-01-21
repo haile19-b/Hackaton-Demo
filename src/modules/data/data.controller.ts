@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { fileService } from "./data.service";
-import { askAISummary } from "../../agents/nodes/informatinUpload/summarizeFile";
-import { agentEvents } from "../../config/event.emmiter";
+import { informationAgent } from "../../agents/graphs/informationGraph";
 export const dataController = {
     async addTextData(req: Request, res: Response) {
         try {
@@ -17,69 +16,42 @@ export const dataController = {
     },
 
     async uploadFile(req: Request, res: Response) {
-        // --- SSE headers ---
-        res.setHeader("Content-Type", "text/event-stream");
-        res.setHeader("Cache-Control", "no-cache");
-        res.setHeader("Connection", "keep-alive");
-        res.flushHeaders?.();
-
-        // --- SSE writer ---
-        const onProgress = (event: any) => {
-            res.write(`data: ${JSON.stringify(event)}\n\n`);
-        };
-
-        agentEvents.on("progress", onProgress);
-
         try {
             const file = req.file;
+            const userId = (req as any).user?.userId || "anonymous";
+            const projectId = "696b9e92701a4ea33cc287cb";
+
             if (!file) {
-                agentEvents.emit("progress", {
-                    type: "error",
-                    node: "Upload",
-                    status: "failed",
-                    message: "No file uploaded",
-                    timestamp: Date.now()
+                return res.status(400).json({
+                    success: false,
+                    error: "No file uploaded."
                 });
-                return;
             }
 
-            agentEvents.emit("progress", {
-                type: "progress",
-                node: "Upload",
-                status: "completed",
-                message: "File received successfully",
-                timestamp: Date.now()
+            const finalState = await informationAgent.invoke({
+                file,
+                userId,
+                projectId
             });
 
-            const result = await askAISummary(file);
+            if (!finalState.success) {
+                return res.status(422).json({
+                    success: false,
+                    error: finalState.error
+                });
+            }
 
-            agentEvents.emit("progress", {
-                type: "result",
-                node: "AI Analysis",
-                status: "completed",
-                data: result,
-                timestamp: Date.now()
-            });
-
-            agentEvents.emit("progress", {
-                type: "done",
-                node: "Pipeline",
-                status: "completed",
-                message: "Processing finished",
-                timestamp: Date.now()
+            return res.status(200).json({
+                success: true,
+                data: finalState.fileSummary
             });
 
         } catch (error: any) {
-            agentEvents.emit("progress", {
-                type: "error",
-                node: "Upload Pipeline",
-                status: "failed",
-                message: error.message,
-                timestamp: Date.now()
+            return res.status(500).json({
+                success: false,
+                error: "Internal server error."
             });
-        } finally {
-            agentEvents.off("progress", onProgress);
-            res.end();
         }
     }
+
 }

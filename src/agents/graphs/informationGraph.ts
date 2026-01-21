@@ -1,22 +1,15 @@
 import { StateGraph, Annotation, START, END } from "@langchain/langgraph";
+import { askAISummary } from "../nodes/informatinUpload/summarizeFile";
+import { saveInformation } from "../nodes/informatinUpload/saveFileData";
 
 
 export const AgentStateAnnotation = Annotation.Root({
-  userInput: Annotation<string>,
-  deviceName: Annotation<string>,
-  deviceFound: Annotation<boolean>,
-  deviceTitle: Annotation<string>,
-  guidesFound: Annotation<boolean>,
-  guides: Annotation<any[]>,
-  selectedGuideId: Annotation<number>,
-  guideDetails: Annotation<any>,
-  finalResponse: Annotation<string>,
-  webSearch: Annotation<boolean>,
-  webResult: Annotation<object>,
-  cleaned: Annotation<boolean>,
-  cleanedData: Annotation<object>,
-  finalData: Annotation<object>,
-  finalSummary: Annotation<object>,
+  file: Annotation<Express.Multer.File>,
+  userId: Annotation<string>,
+  projectId: Annotation<string>,
+  success: Annotation<boolean>,
+  error: Annotation<string>,
+  fileSummary: Annotation<any>,
 });
 
 // Create a type for the state based on the annotation for use in your nodes
@@ -26,50 +19,11 @@ export type AgentState = typeof AgentStateAnnotation.State;
 const workflow = new StateGraph(AgentStateAnnotation);
 
 workflow
-  .addNode("findDeviceName", getDeviceName)
-  .addNode("deviceSearch", deviceSearchNode)
-  .addNode("guideList", guideListNode)
-  .addNode("getRelevantGuide", getRelevantGuide)
-  .addNode("fetchGuideDetails", guideDetailsNode)
-  .addNode("fallbackSearch", fallbackSearchNode)
-  .addNode("cleaniFixitData", clean_iFixit_Data)
-  .addNode("cleanWebsiteData", clean_tavily_data)
-  .addNode("summarizesIFixitTheData", summarize)
-  .addNode("summarizeWebsearchData", summarizeWebsearchData)
-  .addNode("FinalNode", Final)
-
-// 4. Define graph order
-.addEdge(START, "findDeviceName")
-
-.addEdge("findDeviceName", "deviceSearch")
-
-.addConditionalEdges("deviceSearch", (state) => {
-  if (state.deviceFound === false) {
-    return "fallbackSearch";
-  }
-  return "guideList";
-})
-  .addConditionalEdges("guideList", (state) => {
-    if (state.guidesFound === false) {
-      return "fallbackSearch";
-    }
-    return "getRelevantGuide";
-  })
-  .addConditionalEdges("getRelevantGuide", (state) => {
-    if (state.selectedGuideId == null) {
-      return "fallbackSearch";
-    }
-    return "fetchGuideDetails";
-  })
-  .addEdge("fetchGuideDetails", "cleaniFixitData")
-  .addEdge("cleaniFixitData", "summarizesIFixitTheData")
-  .addEdge("fallbackSearch", "cleanWebsiteData")
-  .addEdge("cleanWebsiteData", "summarizeWebsearchData")
-  .addEdge("summarizeWebsearchData", "FinalNode")
-  .addEdge("summarizesIFixitTheData", "FinalNode")
-  .addEdge("FinalNode", END); // Standard finish point
+  .addNode("summarizeFile", askAISummary)
+  .addNode("saveInformation", saveInformation)
+  .addEdge(START, "summarizeFile")
+  .addEdge("summarizeFile", "saveInformation")
+  .addEdge("saveInformation", END);
 
 // 5. Compile graph to agent
-export const agent = workflow.compile({
-  checkpointer: checkPointer,
-});
+export const informationAgent = workflow.compile({});

@@ -1,74 +1,78 @@
 import zodToJsonSchema from "zod-to-json-schema";
 import { genAI } from "../../../config/genAI";
 import { projectDocumentationSchema } from "../../zodSchema/documentSchema";
-import { agentEvents } from "../../../config/event.emmiter";
 
-export const askAISummary = async (file: Express.Multer.File) => {
-  agentEvents.emit("progress", {
-    type: "progress",
-    node: "Document Preparation",
-    status: "started",
-    message: "Converting file to base64",
-    timestamp: Date.now()
-  });
+export const askAISummary = async (state: any) => {
+  try {
+    const file = state.file;
 
-  const base64Data = file.buffer.toString("base64");
+    if (!file || !file.buffer) {
+      return {
+        success: false,
+        error: "Invalid file provided to analysis engine.",
+        fileSummary: null
+      };
+    }
 
-  agentEvents.emit("progress", {
-    type: "progress",
-    node: "AI Model",
-    status: "started",
-    message: "Sending document to Gemini",
-    timestamp: Date.now()
-  });
+    const base64Data = file.buffer.toString("base64");
 
-  const contents = [
-    {
-      text: `You are a senior software analyst.
+    const contents = [
+      {
+        text: `
+You are a senior software analyst.
 
-Analyze the following project documentation and extract:
+Extract ONLY:
 - Functional requirements
 - Non-functional requirements
 - Recommended tasks
-- Conflicts or ambiguities
-- Missing or unclear information
+- Tech stack
+- Conflicts
+- Missing information
 
-Return ONLY valid JSON matching the schema.`
-    },
-    {
-      inlineData: {
-        mimeType: file.mimetype,
-        data: base64Data
+Rules:
+- Do NOT invent data
+- Use empty arrays if missing
+- Return ONLY valid JSON matching the schema
+`
+      },
+      {
+        inlineData: {
+          mimeType: file.mimetype,
+          data: base64Data
+        }
       }
+    ];
+
+    const response = await genAI.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents,
+      config: {
+        responseMimeType: "application/json",
+        responseJsonSchema: zodToJsonSchema(projectDocumentationSchema)
+      }
+    });
+
+    if (!response.text) {
+      return {
+        success: false,
+        error: "AI returned empty response.",
+        fileSummary: null
+      };
     }
-  ];
 
-  const response = await genAI.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents,
-    config: {
-      responseMimeType: "application/json",
-      responseJsonSchema: zodToJsonSchema(projectDocumentationSchema)
-    }
-  });
+    const parsed = JSON.parse(response.text);
 
-  agentEvents.emit("progress", {
-    type: "progress",
-    node: "AI Model",
-    status: "completed",
-    message: "AI analysis completed",
-    timestamp: Date.now()
-  });
+    return {
+      success: true,
+      error: "",
+      fileSummary: parsed
+    };
 
-  const parsed = JSON.parse(response.text!);
-
-  agentEvents.emit("progress", {
-    type: "progress",
-    node: "Validation",
-    status: "completed",
-    message: "Structured output validated",
-    timestamp: Date.now()
-  });
-
-  return parsed;
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || "Unexpected AI error",
+      fileSummary: null
+    };
+  }
 };

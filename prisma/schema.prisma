@@ -13,6 +13,13 @@ enum ProjectStatus {
   COMPLETED
 }
 
+enum ConflictSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+
 enum TaskStatus {
   TODO
   IN_PROGRESS
@@ -56,9 +63,78 @@ model Project {
   tasks       Task[]
   chunks      Chunk[]
 
+  functionalRequirements     FunctionalRequirement[]
+  nonFunctionalRequirements  NonFunctionalRequirement[]
+  techStacks                 TechStack[]
+  conflicts                  Conflict[]
+  missingInformation          MissingInformation[]
+
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 }
+
+
+model FunctionalRequirement {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  code        String   // e.g. FR-1
+  description String
+
+  projectId   String   @db.ObjectId
+  project     Project  @relation(fields: [projectId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+model NonFunctionalRequirement {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  code        String   // e.g. NFR-2
+  description String
+  projectId   String   @db.ObjectId
+  project     Project  @relation(fields: [projectId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+model TechStack {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  category  String   // e.g. "backend", "frontend", "database"
+  stack     String[] // e.g. ["Node.js", "Express", "Prisma"]
+
+
+  projectId String   @db.ObjectId
+  project   Project  @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Conflict {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  description String
+  severity    ConflictSeverity
+
+  resolved    Boolean  @default(false)
+  resolution  String?
+
+  projectId   String   @db.ObjectId
+  project     Project  @relation(fields: [projectId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+model MissingInformation {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  description String
+
+  addressed   Boolean  @default(false)
+  note        String?
+
+  projectId   String   @db.ObjectId
+  project     Project  @relation(fields: [projectId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+
 
 model Document {
   id          String         @id @default(auto()) @map("_id") @db.ObjectId

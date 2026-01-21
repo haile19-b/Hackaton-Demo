@@ -1,0 +1,139 @@
+{
+    "success": true,
+    "data": {
+        "functionalRequirements": [
+            {
+                "id": "FR-01",
+                "description": "The system shall provide face identification as the primary student identity verification method."
+            },
+            {
+                "id": "FR-02",
+                "description": "The system shall support supplementary biometric authentication such as fingerprint verification."
+            },
+            {
+                "id": "FR-03",
+                "description": "The system shall implement Two-Factor Authentication (2FA) for student login."
+            },
+            {
+                "id": "FR-04",
+                "description": "The system shall support multiple staff roles including exam committee member, exam preparer, exam coordinator, and exam paper collector."
+            },
+            {
+                "id": "FR-05",
+                "description": "The system shall enable examiners to manage student seating arrangements."
+            },
+            {
+                "id": "FR-06",
+                "description": "The system shall monitor student movement using cameras and detect abnormal eye/head movements using computer-based cameras."
+            },
+            {
+                "id": "FR-07",
+                "description": "The system shall automate grading for objective questions such as multiple-choice and fill-in-the-blank."
+            },
+            {
+                "id": "FR-08",
+                "description": "The system shall allow manual recording of marks for subjective questions that are written on paper."
+            },
+            {
+                "id": "FR-09",
+                "description": "The system shall calculate final letter grades based on the Ministry of Education of Ethiopia (MoE) policy, combining quizzes, assignments, mid-exams, and final exams."
+            },
+            {
+                "id": "FR-10",
+                "description": "The system shall provide students access to view total marks and grades, but not full exam content, after the exam."
+            },
+            {
+                "id": "FR-11",
+                "description": "The system shall generate performance analysis reports and visualizations using graphs to show grade distributions and trend comparisons."
+            },
+            {
+                "id": "FR-12",
+                "description": "The system shall support shift or group scheduling for taking exams at different times."
+            },
+            {
+                "id": "FR-13",
+                "description": "The system shall return questions to the question bank post-exam while preventing student access to past questions."
+            }
+        ],
+        "non_functionalRequirements": [
+            {
+                "id": "NFR-01",
+                "description": "The system should support high concurrency, potentially handling 1,000 to 10,000+ simultaneous students."
+            },
+            {
+                "id": "NFR-02",
+                "description": "The system must maintain stable performance, reliability, and responsiveness during examinations regardless of shift usage."
+            },
+            {
+                "id": "NFR-03",
+                "description": "The system must ensure high accuracy and consistency in the automated conversion of raw marks to letter grades."
+            },
+            {
+                "id": "NFR-04",
+                "description": "Strong authentication mechanisms must be implemented to prevent student impersonation."
+            }
+        ],
+        "techStack": [
+            {
+                "category": "security",
+                "stack": [
+                    "Two-Factor Authentication (2FA)",
+                    "Face identification",
+                    "Biometric authentication (Fingerprint)"
+                ]
+            },
+            {
+                "category": "monitoring",
+                "stack": [
+                    "Computer-based cameras",
+                    "Computer vision for movement detection"
+                ]
+            },
+            {
+                "category": "analytics",
+                "stack": [
+                    "Graph-based visualization tools"
+                ]
+            }
+        ],
+        "recommendedTasks": [
+            {
+                "title": "Authentication Module Development",
+                "description": "Develop and integrate face identification and biometric login modules along with 2FA protocols."
+            },
+            {
+                "title": "Grading Engine Configuration",
+                "description": "Implement the Ministry of Education (MoE) grading logic and combine multiple assessment scores into a final mark."
+            },
+            {
+                "title": "Automated Proctoring System",
+                "description": "Design camera-based monitoring algorithms to detect abnormal movement and behavior during exams."
+            },
+            {
+                "title": "Reporting and Analytics Dashboard",
+                "description": "Create the course portfolio analysis module with data visualization for grade distributions."
+            },
+            {
+                "title": "Load and Scalability Testing",
+                "description": "Perform stress testing to ensure the server configuration can handle up to 10,000 concurrent users."
+            }
+        ],
+        "conflicts": [
+            {
+                "description": "The stakeholder mentions subjective answers are 'written on paper' but the 'final scores should be recorded in the system', creating a manual data entry dependency in a digital system.",
+                "severity": "MEDIUM"
+            },
+            {
+                "description": "The stakeholder indicates a capacity requirement of 1,000 to 10,000 students but suggests shifts if the system cannot handle them, indicating a lack of clear performance benchmarks.",
+                "severity": "LOW"
+            }
+        ],
+        "missingInformation": [
+            "Specific hardware specifications for the biometric (face/fingerprint) capture devices.",
+            "Detailed mapping of raw marks to letter grades for the Ministry of Education (MoE) policy.",
+            "The required budget (delegated to developers to calculate).",
+            "Specific format requirements for the department's 'course portfolio'.",
+            "Infrastructure details regarding the server hosting environment."
+        ]
+    }
+}
