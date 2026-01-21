@@ -1,41 +1,74 @@
 import zodToJsonSchema from "zod-to-json-schema";
 import { genAI } from "../../../config/genAI";
 import { projectDocumentationSchema } from "../../zodSchema/documentSchema";
-
+import { agentEvents } from "../../../config/event.emmiter";
 
 export const askAISummary = async (file: Express.Multer.File) => {
-    // 1. Convert the Multer buffer directly to a base64 string
-    const base64Data = file.buffer.toString("base64");
+  agentEvents.emit("progress", {
+    type: "progress",
+    node: "Document Preparation",
+    status: "started",
+    message: "Converting file to base64",
+    timestamp: Date.now()
+  });
 
-    const contents = [
-        { text: `You are a senior software analyst.
+  const base64Data = file.buffer.toString("base64");
+
+  agentEvents.emit("progress", {
+    type: "progress",
+    node: "AI Model",
+    status: "started",
+    message: "Sending document to Gemini",
+    timestamp: Date.now()
+  });
+
+  const contents = [
+    {
+      text: `You are a senior software analyst.
 
 Analyze the following project documentation and extract:
-- Functional and non-functional requirements
-- Recommended implementation tasks
+- Functional requirements
+- Non-functional requirements
+- Recommended tasks
 - Conflicts or ambiguities
 - Missing or unclear information
 
-Return ONLY valid JSON that matches the provided schema.` },
-        {
-            inlineData: {
-                mimeType: file.mimetype, // Dynamically use the file's mime type (e.g., 'application/pdf')
-                data: base64Data
-            }
-        }
-    ];
+Return ONLY valid JSON matching the schema.`
+    },
+    {
+      inlineData: {
+        mimeType: file.mimetype,
+        data: base64Data
+      }
+    }
+  ];
 
-    const response = await genAI.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: contents,
-        config:{
-            responseMimeType:"application/json",
-            responseJsonSchema:zodToJsonSchema(projectDocumentationSchema)
-        }
-    });
+  const response = await genAI.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents,
+    config: {
+      responseMimeType: "application/json",
+      responseJsonSchema: zodToJsonSchema(projectDocumentationSchema)
+    }
+  });
 
-    const parsed = JSON.parse(response.text!);
+  agentEvents.emit("progress", {
+    type: "progress",
+    node: "AI Model",
+    status: "completed",
+    message: "AI analysis completed",
+    timestamp: Date.now()
+  });
+
+  const parsed = JSON.parse(response.text!);
+
+  agentEvents.emit("progress", {
+    type: "progress",
+    node: "Validation",
+    status: "completed",
+    message: "Structured output validated",
+    timestamp: Date.now()
+  });
 
   return parsed;
-
 };
