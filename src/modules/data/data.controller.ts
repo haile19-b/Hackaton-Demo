@@ -2,32 +2,63 @@ import { Request, Response } from "express";
 import { informationAgent } from "../../agents/graphs/informationGraph";
 import { vectorAgent } from "../../agents/graphs/vectorGraph";
 import { dataService } from "./data.service";
+import { textInformationAgent } from "../../agents/graphs/textInfoGraph";
+import { textVectorAgent } from "../../agents/graphs/textVectorGraph";
 
 export const dataController = {
     async addTextData(req: Request, res: Response) {
+        const { text } = req.body;
+        const { projectId } = req.params;
+        const userId = (req as any).user?.userId;
+
+        if (!text) {
+            return res.status(400).json({
+                success: false,
+                error: "No text provided."
+            });
+        }
+
+        if (!projectId) {
+            return res.status(400).json({
+                success: false,
+                error: "Missing projectId."
+            });
+        }
+
         try {
-            const { text, projectId } = req.body;
-            if (!text) {
-                return res.status(400).json({
-                    success: false,
-                    error: "No text provided."
-                });
+            const [infoResult, vectorResult] = await Promise.all([
+                textInformationAgent.invoke({
+                    text,
+                    userId,
+                    projectId,
+                    success: true
+                }),
+                textVectorAgent.invoke({
+                    text,
+                    projectId,
+                    success: true
+                })
+            ]);
+
+            if (!infoResult.success) {
+                return res.status(422).json(infoResult.error);
             }
 
-            const userId = (req as any).user?.userId;
-
-            // Your existing logic here
-            // await fileService.processText(text, userId, projectId);
+            if (!vectorResult.success) {
+                return res.status(422).json(vectorResult);
+            }
 
             return res.status(200).json({
                 success: true,
-                message: "Text processed successfully."
+                message: "Text processed successfully",
+                info: infoResult.fileSummary,
+                chunksStored: vectorResult.chunksStored
             });
 
-        } catch (error: any) {
+        } catch {
             return res.status(500).json({
                 success: false,
-                error: error.message || "Failed to process text."
+                error: "Unexpected server error"
             });
         }
     },
@@ -78,7 +109,7 @@ export const dataController = {
 
     async addMissingData(req: Request, res: Response) {
         const { missingdataId = null, text } = req.body;
-        const  projectId  = req.params.projectId;
+        const projectId = req.params.projectId;
 
         if (!text || typeof text !== "string") {
             return res.status(400).json({

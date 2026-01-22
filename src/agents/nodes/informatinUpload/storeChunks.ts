@@ -16,7 +16,7 @@ export const storeChunks = async (state: any) => {
             data: chunks.map((content: string, i: number) => ({
                 content,
                 vector: embeddings[i],
-                source: file.originalname,
+                source: file?.originalname?? null,
                 projectId,
             }))
         });

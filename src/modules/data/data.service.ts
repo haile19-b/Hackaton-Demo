@@ -4,6 +4,46 @@ import { getGeminiEmbedding } from "../../utils/embedChunk";
 
 export const dataService = {
 
+  async processText(text: string, projectId: string) {
+    try {
+      const chunks = await chunkText(text);
+
+      if (!chunks.length) {
+        return {
+          success: false,
+          error: "Text could not be chunked",
+        };
+      }
+
+      const embeddingsRes = await getGeminiEmbedding(chunks, true);
+
+      if (!embeddingsRes.success) {
+        return embeddingsRes;
+      }
+
+      const embeddings = embeddingsRes.data!;
+
+      const records = chunks.map((chunk, i) => ({
+        content: chunk,
+        vector: embeddings[i],
+        projectId,
+      }));
+      await prisma.chunk.createMany({
+        data: records,
+      });
+      return {
+        success: true,
+        chunksStored: records.length,
+      };
+    } catch (error) {
+      console.error("addMissingData error:", error);
+
+      return {
+        success: false,
+        error: "Failed to add missing data",
+      };
+    }
+  },
 
   async addMissingData(
     text: string,

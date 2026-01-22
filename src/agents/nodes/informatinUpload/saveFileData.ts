@@ -11,19 +11,6 @@ export const saveInformation = async (state: any) => {
 
   try {
     await prisma.$transaction(async (tx) => {
-      /* -------------------------------
-         CLEAN OLD AGENT-GENERATED DATA
-      -------------------------------- */
-    //   await Promise.all([
-    //     tx.functionalRequirement.deleteMany({ where: { projectId } }),
-    //     tx.nonFunctionalRequirement.deleteMany({ where: { projectId } }),
-    //     tx.techStack.deleteMany({ where: { projectId } }),
-    //     tx.conflict.deleteMany({ where: { projectId } }),
-    //     tx.missingInformation.deleteMany({ where: { projectId } }),
-    //     tx.task.deleteMany({
-    //       where: { projectId, origin: TaskOrigin.AGENT }
-    //     }),
-    //   ]);
 
       /* -------------------------------
          FUNCTIONAL REQUIREMENTS
