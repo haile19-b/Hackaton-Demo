@@ -1,47 +1,61 @@
-export const searchEmbeddedData = async (userInputVector: number[]) => {
-    try {
+import { embedded } from "../../../config/mongoDB";
 
-        // Build the base pipeline
-        const pipeline = [];
+export const searchEmbeddedData = async (state: any) => {
+  const { vector } = state;
 
-        // Vector search stage with optional title filtering
-        const vectorSearchStage = {
-            $vectorSearch: {
-                index: "vector_index",
-                path: "vector",
-                queryVector: userInputVector,
-                numCandidates: 100,
-                limit: 20
-            }
-        };
+  if (!vector || !Array.isArray(vector)) {
+    return {
+      ...state,
+      success: false,
+      error: "Missing or invalid query vector."
+    };
+  }
 
-        pipeline.push(vectorSearchStage);
+  try {
+    const pipeline: any[] = [];
 
-        // Continue with existing pipeline stages
-        pipeline.push(
-            {
-                $project: {
-                    content: 1,
-                    _id: 1,
-                    score: { $meta: "vectorSearchScore" }
-                }
-            },
-            {
-                $match: {
-                    score: { $gte: 0.1 } //score: { $gte: 0.84 }
-                }
-            },
-            {
-                $limit: 5
-            }
-        );
+    pipeline.push({
+      $vectorSearch: {
+        index: "vector_index",
+        path: "vector",
+        queryVector: vector,
+        numCandidates: 100,
+        limit: 20
+      }
+    });
 
-        const results = await data.aggregate(pipeline).toArray();
-        return results;
+    pipeline.push(
+      {
+        $project: {
+          content: 1,
+          score: { $meta: "vectorSearchScore" }
+        }
+      },
+      {
+        $match: {
+          score: { $gte: 0.1 }
+        }
+      },
+      {
+        $limit: 5
+        }
+    );
 
-    } catch (error: any) {
-        console.log(`Search failed: ${error.message}`);
-        console.log("Full error:", error);
-        return [];
-    }
-}
+    const results = await embedded.aggregate(pipeline).toArray();
+
+    return {
+      ...state,
+      success: true,
+      searchResult: results
+    };
+
+  } catch (error: any) {
+    console.error("Vector search failed:", error);
+
+    return {
+      ...state,
+      success: false,
+      error: "Vector search failed."
+    };
+  }
+};
