@@ -1,13 +1,20 @@
 export const cleanVectorSearchInfo = async (state: any) => {
-  const { searchResult } = state;
+  const { searchResult, emit } = state;
 
   if (!Array.isArray(searchResult) || searchResult.length === 0) {
+    emit?.("error", {
+      error: "No vector search results to clean"
+    });
+
     return {
-      ...state,
       success: false,
       error: "No vector search results to clean."
     };
   }
+
+  emit?.("progress", {
+    message: "Cleaning vector search results"
+  });
 
   try {
     const cleanedText = searchResult
@@ -16,17 +23,22 @@ export const cleanVectorSearchInfo = async (state: any) => {
       })
       .join("\n\n");
 
+    emit?.("progress", {
+      message:"Data cleaned successfully",
+      textLength: cleanedText.length
+    });
+
     return {
-      ...state,
       success: true,
       final_VectorSearch_Info: cleanedText
     };
 
   } catch (error: any) {
-    console.error("Clean vector search error:", error);
+    emit?.("error", {
+      error: "Failed to clean vector search information"
+    });
 
     return {
-      ...state,
       success: false,
       error: "Failed to clean vector search information."
     };

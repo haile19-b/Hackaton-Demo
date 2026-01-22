@@ -1,39 +1,58 @@
 import { Request, Response } from "express";
 import { assistantAgent } from "../../agents/graphs/assistantGraph";
+import { createSSEEmitter } from "../../utils/sse";
 
 export const assistantController = {
   async answerUserQuery(req: Request, res: Response) {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders?.();
+
+    const emit = createSSEEmitter(res);
+
     const { query } = req.body;
     const { projectId } = req.params;
     const userId = (req as any).user?.userId;
 
     if (!query) {
-      return res.status(400).json({
-        success: false,
-        error: "Query is required."
-      });
+      emit("error", { message: "Query is required." });
+      return res.end();
     }
 
     if (!projectId) {
-      return res.status(400).json({
-        success: false,
-        error: "Project ID is required."
+      emit("error", { message: "Project ID is required." });
+      return res.end();
+    }
+
+    emit("progress", {
+      stage: "start",
+      message: "Assistant started"
+    });
+
+    try {
+      const result = await assistantAgent.invoke({
+        query,
+        projectId,
+        userId,
+        emit
       });
+
+      emit("final", {
+        success: true,
+        response: result.finalResponse
+      });
+
+      res.end();
+
+    } catch (err: any) {
+      console.error("assistantController error:", err);
+
+      emit("error", {
+        message: err?.message || "Unexpected server error"
+      });
+
+      res.end();
     }
-
-    const result = await assistantAgent.invoke({
-      query,
-      projectId,
-      userId
-    });
-
-    if (!result.success) {
-      return res.status(422).json(result);
-    }
-
-    return res.status(200).json({
-      success: true,
-      data: result.finalResponse
-    });
   }
 };

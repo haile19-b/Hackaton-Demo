@@ -1,6 +1,7 @@
 import { StateGraph, Annotation, START, END } from "@langchain/langgraph";
 import { findInformationSource } from "../nodes/InformationRetrieve.ts/decideInformationSource";
 import { summarizeResponse } from "../nodes/InformationRetrieve.ts/responseSummary";
+import { SSEEmit } from "../../utils/sse";
 
 export const AgentStateAnnotation = Annotation.Root({
   query: Annotation<string>,
@@ -15,7 +16,9 @@ export const AgentStateAnnotation = Annotation.Root({
 
   finalResponse: Annotation<string>,
   success: Annotation<boolean>,
-  error: Annotation<string | null>
+  error: Annotation<string | null>,
+
+  emit: Annotation<SSEEmit | undefined>,
 });
 
 export type AgentState = typeof AgentStateAnnotation.State;
