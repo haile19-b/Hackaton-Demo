@@ -17,6 +17,7 @@ export const embedChunks = async (state: any) => {
         model: "gemini-embedding-001",
         contents: batch,
         config: { taskType: "RETRIEVAL_DOCUMENT" }
+        
       });
 
       if (!response.embeddings?.length) {

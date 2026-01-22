@@ -5,6 +5,8 @@ import { cleanVectorSearchInfo } from "../nodes/InformationRetrieve.ts/cleanVect
 
 export const AgentStateAnnotation = Annotation.Root({
   query: Annotation<string>,
+  generated_query: Annotation<string>,
+  projectId: Annotation<string>,
   vector: Annotation<number[]>,
   searchResult: Annotation<any[]>,
   final_VectorSearch_Info: Annotation<string | null>,

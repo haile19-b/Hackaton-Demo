@@ -33,6 +33,8 @@ export const findInformationSource = async (state: any) => {
   let dbInfo: string | null = null;
   let ragInfo: string | null = null;
 
+  console.log(calls)
+
   for (const call of calls) {
     if (call.name === "getProjectData") {
       const result = await subAssistantDatabaseAgent.invoke({
@@ -46,6 +48,7 @@ export const findInformationSource = async (state: any) => {
     if (call.name === "answerQueryFromRAG") {
       const result = await subAssistantRAG_Agent.invoke({
         query,
+        generated_query:call?.args?.generated_query,
         projectId
       });
       if (result.success) ragInfo = result.final_VectorSearch_Info;

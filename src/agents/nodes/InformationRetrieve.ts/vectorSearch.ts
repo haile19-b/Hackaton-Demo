@@ -33,7 +33,7 @@ export const searchEmbeddedData = async (state: any) => {
       },
       {
         $match: {
-          score: { $gte: 0.1 }
+          score: { $gte: 0.8 }
         }
       },
       {
@@ -42,6 +42,8 @@ export const searchEmbeddedData = async (state: any) => {
     );
 
     const results = await embedded.aggregate(pipeline).toArray();
+
+    console.log(results)
 
     return {
       ...state,
