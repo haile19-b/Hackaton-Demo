@@ -1,8 +1,18 @@
 import { genAI } from "../../../config/genAI";
 
 export const embedGeneratedQuery = async (state: any) => {
+  const { emit } = state;
+
+  emit?.("progress", {
+    message: "Generating embedding for query"
+  });
+
   try {
     if (!state?.query) {
+      emit?.("error", {
+        error: "Query missing"
+      });
+
       return {
         success: false,
         error: "Query missing."
@@ -16,18 +26,30 @@ export const embedGeneratedQuery = async (state: any) => {
     });
 
     if (!response?.embeddings?.[0]?.values) {
+      emit?.("error", {
+        error: "Embedding failed"
+      });
+
       return {
         success: false,
         error: "Embedding failed."
       };
     }
 
+    emit?.("progress", {
+      message:"query embedded successfully",
+      vectorLength: response.embeddings[0].values.length
+    });
+
     return {
       success: true,
       vector: response.embeddings[0].values
     };
+
   } catch (error: any) {
-    console.error("embedGeneratedQuery error:", error);
+    emit?.("error", {
+      error: error?.message || "Unexpected embedding error"
+    });
 
     return {
       success: false,

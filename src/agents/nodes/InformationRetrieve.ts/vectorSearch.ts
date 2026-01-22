@@ -1,15 +1,22 @@
 import { embedded } from "../../../config/mongoDB";
 
 export const searchEmbeddedData = async (state: any) => {
-  const { vector } = state;
+  const { vector, emit } = state;
 
   if (!vector || !Array.isArray(vector)) {
+    emit?.("error", {
+      error: "Missing or invalid query vector"
+    });
+
     return {
-      ...state,
       success: false,
       error: "Missing or invalid query vector."
     };
   }
+
+  emit?.("progress", {
+    message: "Performing vector search"
+  });
 
   try {
     const pipeline: any[] = [];
@@ -38,23 +45,27 @@ export const searchEmbeddedData = async (state: any) => {
       },
       {
         $limit: 5
-        }
+      }
     );
 
     const results = await embedded.aggregate(pipeline).toArray();
 
+    emit?.("progress", {
+      message:"vector search completed",
+      resultsCount: results.length
+    });
 
     return {
-      ...state,
       success: true,
       searchResult: results
     };
 
   } catch (error: any) {
-    console.error("Vector search failed:", error);
+    emit?.("error", {
+      error: "Vector search failed"
+    });
 
     return {
-      ...state,
       success: false,
       error: "Vector search failed."
     };

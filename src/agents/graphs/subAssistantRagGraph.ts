@@ -2,6 +2,7 @@ import { StateGraph, Annotation, START, END } from "@langchain/langgraph";
 import { embedGeneratedQuery } from "../nodes/InformationRetrieve.ts/embedQuery";
 import { searchEmbeddedData } from "../nodes/InformationRetrieve.ts/vectorSearch";
 import { cleanVectorSearchInfo } from "../nodes/InformationRetrieve.ts/cleanVectorSearchInfo";
+import { SSEEmit } from "../../utils/sse";
 
 export const AgentStateAnnotation = Annotation.Root({
   query: Annotation<string>,
@@ -11,7 +12,9 @@ export const AgentStateAnnotation = Annotation.Root({
   searchResult: Annotation<any[]>,
   final_VectorSearch_Info: Annotation<string | null>,
   success: Annotation<boolean>,
-  error: Annotation<string | null>
+  error: Annotation<string | null>,
+
+  emit: Annotation<SSEEmit | undefined>,
 });
 
 export type AgentState = typeof AgentStateAnnotation.State;
