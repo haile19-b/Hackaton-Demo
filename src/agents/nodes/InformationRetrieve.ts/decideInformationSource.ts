@@ -1,5 +1,5 @@
 import { genAI } from "../../../config/genAI";
-import { getProjectDataFunctionDeclaration } from "../../functionDeclaration.ts/assitant.function";
+import { answerQueryFromRAGFunctionDeclaration, getProjectDataFunctionDeclaration } from "../../functionDeclaration.ts/assitant.function";
 
 export const findInformationSource = async (query:string) => {
     // const { query } = state;
@@ -18,7 +18,7 @@ export const findInformationSource = async (query:string) => {
             config: {
                 tools: [
                     {
-                        functionDeclarations: [getProjectDataFunctionDeclaration]
+                        functionDeclarations: [getProjectDataFunctionDeclaration,answerQueryFromRAGFunctionDeclaration]
                     }
                 ]
             }
@@ -42,7 +42,7 @@ export const findInformationSource = async (query:string) => {
         return {
             success: true,
             called: true,
-            functionName: functions
+            functions: functions
         };
 
     } catch (error: any) {
