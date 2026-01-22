@@ -2,6 +2,6 @@ import { MongoClient } from "mongodb";
 import { env } from "../env";
 
 const client = new MongoClient(env.DATABASE_URL!);
-const db = client.db("rag-prep");
+const db = client.db("hackathon");
 
-export const data = db.collection("Data");
+export const embedded = db.collection("Chunk");
