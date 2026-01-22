@@ -1,7 +1,6 @@
 import { genAI } from "../../../config/genAI";
 
 export const embedGeneratedQuery = async (state: any) => {
-  console.log("1: ",state)
   try {
     if (!state?.query) {
       return {

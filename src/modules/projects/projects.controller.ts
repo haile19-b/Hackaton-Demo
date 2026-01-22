@@ -7,7 +7,6 @@ export const ProjectsController = {
     try {
       const userId = (req as any).user.userId;
       const data = CreateProjectSchema.parse(req.body);
-      console.log(data)
 
       const project = await ProjectsService.createProject(userId, data);
 

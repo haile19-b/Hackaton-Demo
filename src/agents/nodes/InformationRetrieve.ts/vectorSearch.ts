@@ -43,7 +43,6 @@ export const searchEmbeddedData = async (state: any) => {
 
     const results = await embedded.aggregate(pipeline).toArray();
 
-    console.log(results)
 
     return {
       ...state,

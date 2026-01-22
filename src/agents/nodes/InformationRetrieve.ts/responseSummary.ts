@@ -1,43 +1,53 @@
 import { genAI } from "../../../config/genAI";
 
 export const summarizeResponse = async (state: any) => {
-    const parts = [];
-    const { query,generated_query } = state;
+    const { emit } = state;
 
-    if (state.final_DB_Info) parts.push(state.final_DB_Info);
-    if (state.final_VectorSearch_Info) parts.push(state.final_VectorSearch_Info);
+    try {
+        const parts: string[] = [];
+        const { query } = state;
 
-    // if (!parts.length) {
-    //     return {
-    //         success: false,
-    //         error: "No information found to answer query."
-    //     };
-    // }
+        if (state.final_DB_Info) parts.push(state.final_DB_Info);
+        if (state.final_VectorSearch_Info) parts.push(state.final_VectorSearch_Info);
 
-    const response = await genAI.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Answer the user query using given data.
-    You are generating a clean, frontend-ready answer.
+        emit?.("progress", {
+            stage: "summarize",
+            message: "Generating final answer"
+        });
 
-STRICT RULES:
-- Output ONLY plain text
-- Do NOT use markdown
-- Do NOT use headings, symbols, bullets, or numbering
-- Do NOT use special characters like #, *, -, or :
-- Separate sections using ONE empty line only
-- Use short, clear sentences
-- Do NOT invent information
-- Use ONLY the data provided
-- if given Data is empty , response gracefully that there is no data for the question 
-    Question:
+        const response = await genAI.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: `
+Answer the user's question using ONLY the provided data.
+
+Rules:
+- Plain text only
+- No formatting, lists, or symbols
+- Clear and concise sentences
+- Do not add or guess information
+- Give Clear explanation
+
+Question:
 ${query}
 
 Data:
-${parts.join("\n\n")}`
-    });
+${parts.join("\n\n")}
+      `
+        });
 
-    return {
-        success: true,
-        finalResponse: response.text
-    };
+        return {
+            success: true,
+            finalResponse: response.text
+        };
+
+    } catch (err) {
+        emit?.("error", {
+            message: "Failed to generate final response",err
+        });
+
+        return {
+            success: false,
+            error: "LLM summarization failed"
+        };
+    }
 };
