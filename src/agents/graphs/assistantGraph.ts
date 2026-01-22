@@ -13,8 +13,8 @@ export const AgentStateAnnotation = Annotation.Root({
     callRAG: Annotation<boolean>,
 
     // Results from branches
-    dbResult: Annotation<string | null>,
-    ragResult: Annotation<string | null>,
+    final_DB_Info: Annotation<string | null>,
+    final_VectorSearch_Info: Annotation<string | null>,
 
     // Final output
     finalResponse: Annotation<string>,
