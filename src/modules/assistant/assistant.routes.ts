@@ -3,6 +3,6 @@ import { assistantController } from "./assistant.controller";
 
 const router = Router();
 
-router.post("/ask-function", assistantController.answerUserQuery);
+router.post("/:projectId/ask-function", assistantController.answerUserQuery);
 
 export default router;
